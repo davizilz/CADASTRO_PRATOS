@@ -2,7 +2,7 @@
 <?php
 
 include "infra/conexao.php";
-$prato = mysqli_query($conexao, "SELECT * FROM prato");
+$prato = mysqli_query($conexao, "SELECT * FROM pratos");
 
 ?>
 
@@ -29,8 +29,13 @@ $prato = mysqli_query($conexao, "SELECT * FROM prato");
             <label for="preco">Preço:</label>
             <input type="text" name="preco">
             <br>
-            <label for="ano">Ano de Publicação:</label>
-            <input type="number" name="ano">
+            <label for="categoria">Categoria:</label>
+            <input type="text" name="categoria">
+            <br>
+            <label for="descricao">Descrição:</label>
+            <input type="text" name="descricao">
             <br>
             <button type="submit">Cadastrar</button>
+            <br>
+
         </form>
