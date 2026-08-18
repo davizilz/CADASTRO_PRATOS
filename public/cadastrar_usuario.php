@@ -6,7 +6,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = trim($_POST["email"] ?? "");
 
     if (!empty($nome) && !empty($email)) {
-        $stmt = $conexao->prepare("INSERT INTO usuario (nome, email) VALUES (?, ?)");
+        $stmt = $conexao->prepare("INSERT INTO usuarios (nome, email) VALUES (?, ?)");
         $stmt->bind_param("ss", $nome, $email);
         $stmt->execute();
         $stmt->close();
