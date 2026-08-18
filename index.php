@@ -1,8 +1,25 @@
-
 <?php
 
 include "infra/conexao.php";
-$prato = mysqli_query($conexao, "SELECT * FROM pratos");
+
+$filtro_usuario = $_GET['usuario_id'] ?? null;
+
+if ($filtro_usuario) {
+    $stmt = $conexao->prepare("
+        SELECT pratos.*, usuarios.nome AS usuario_nome
+        FROM pratos
+        INNER JOIN usuarios ON pratos.id_usuario = usuarios.id
+        WHERE pratos.id_usuario = ?
+    ");
+    $stmt->bind_param("i", $filtro_usuario);
+    $stmt->execute();
+    $pratos = $stmt->get_result();
+} else {
+    $sql = "SELECT * FROM pratos";
+    $pratos = mysqli_query($conexao, $sql);
+}
+
+$usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
 
 ?>
 
