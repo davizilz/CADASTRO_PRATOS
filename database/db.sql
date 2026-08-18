@@ -1,5 +1,5 @@
-CREATE DATABASE cadastro_pratos;
-USE cadastro_pratos;
+CREATE DATABASE cadastro_prato;
+USE cadastro_prato;
  
 CREATE TABLE usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
