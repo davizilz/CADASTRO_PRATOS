@@ -2,20 +2,25 @@
 
 include "infra/conexao.php";
 
+function h($s) {
+    return htmlspecialchars($s ?? '', ENT_QUOTES, 'UTF-8');
+}
+
 $filtro_usuario = $_GET['usuario_id'] ?? null;
 
 if ($filtro_usuario) {
-    $stmt = $conexao->prepare("
-        SELECT pratos.*, usuarios.nome AS usuario_nome
-        FROM prato
-        INNER JOIN usuario ON prato.id_usuario = usuario.id
-        WHERE prato.id_usuario = ?
-    ");
-    $stmt->bind_param("i", $filtro_usuario);
-    $stmt->execute();
-    $pratos = $stmt->get_result();
+    $sql = "SELECT pratos.*, usuarios.nome AS nome_usuario
+            FROM pratos
+            LEFT JOIN usuarios ON usuarios.id = pratos.usuario_id
+            WHERE pratos.usuario_id = ?";
+    $stmt = mysqli_prepare($conexao, $sql);
+    mysqli_stmt_bind_param($stmt, "i", $filtro_usuario);
+    mysqli_stmt_execute($stmt);
+    $pratos = mysqli_stmt_get_result($stmt);
 } else {
-    $sql = "SELECT * FROM pratos";
+    $sql = "SELECT pratos.*, usuarios.nome AS nome_usuario
+            FROM pratos
+            LEFT JOIN usuarios ON usuarios.id = pratos.usuario_id";
     $pratos = mysqli_query($conexao, $sql);
 }
 
@@ -24,18 +29,19 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CRUD - Restaurante</title>
-    <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/style.css">
 </head>
 
 <body>
     <header>
         <h1>CRUD - Restaurante</h1>
+        <link rel="stylesheet" href="style/style.css"> 
     </header>
     <main>
 
@@ -58,7 +64,7 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
             <input type="text" name="prato" required>
             <br>
             <label for="preco">Preço:</label>
-            <input type="text" name="preco" required>
+            <input type="number" step="0.01" name="preco" required>
             <br>
             <label for="categoria">Categoria:</label>
             <input type="text" name="categoria" required>
@@ -66,11 +72,11 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
             <label for="descricao">Descrição:</label>
             <input type="text" name="descricao" required>
             <br>
-            <label for="id_usuario">Cadastrado por:</label>
-            <select name="id_usuario" required>
+            <label for="usuario_id">Cadastrado por:</label>
+            <select name="usuario_id" required>
                 <option value="">Selecione o usuário</option>
                 <?php while ($usuario = mysqli_fetch_assoc($usuarios)) { ?>
-                    <option value="<?= $usuario['id'] ?>"><?= $usuario['nome'] ?></option>
+                    <option value="<?= h($usuario['id']) ?>"><?= h($usuario['nome']) ?></option>
                 <?php } ?>
             </select>
             <br>
@@ -87,8 +93,8 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
                 mysqli_data_seek($usuarios, 0);
                 while ($usuario = mysqli_fetch_assoc($usuarios)) {
                 ?>
-                    <option value="<?= $usuario['id'] ?>" <?= ($filtro_usuario == $usuario['id']) ? 'selected' : '' ?>>
-                        <?= $usuario['nome'] ?>
+                    <option value="<?= h($usuario['id']) ?>" <?= ($filtro_usuario == $usuario['id']) ? 'selected' : '' ?>>
+                        <?= h($usuario['nome']) ?>
                     </option>
                 <?php } ?>
             </select>
@@ -108,15 +114,15 @@ $usuarios = mysqli_query($conexao, "SELECT * FROM usuarios");
             </tr>
             <?php while ($prato = mysqli_fetch_assoc($pratos)) { ?>
                 <tr>
-                    <td><?= $prato['nome'] ?></td>
-                    <td><?= $prato['descricao'] ?></td>
+                    <td><?= h($prato['nome']) ?></td>
+                    <td><?= h($prato['descricao']) ?></td>
                     <td>R$ <?= number_format($prato['preco'], 2, ',', '.') ?></td>
-                    <td><?= $prato['categoria'] ?></td>
-                    <td><?= $prato['usuario_id'] ?></td>
+                    <td><?= h($prato['categoria']) ?></td>
+                    <td><?= h($prato['nome_usuario'] ?? '—') ?></td>
                     <td>
-                        <a href="public/editar.php?id=<?= $prato['id'] ?>">Editar</a>
+                        <a href="public/editar.php?id=<?= h($prato['id']) ?>">Editar</a>
                         |
-                        <a href="public/excluir.php?id=<?= $prato['id'] ?>" onclick="return confirm('Excluir este prato?')">Excluir</a>
+                        <a href="public/excluir.php?id=<?= h($prato['id']) ?>" onclick="return confirm('Excluir este prato?')">Excluir</a>
                     </td>
                 </tr>
             <?php } ?>
